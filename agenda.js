@@ -88,7 +88,6 @@ app.get('/info', (request, response) => {
   app.post('/api/persons', (request, response) => {
     console.log(request.body)
     const body = request.body
-    
   
     if (!body.name) {
       return response.status(400).json({ 
