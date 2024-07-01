@@ -8,6 +8,8 @@ const cors = require('cors')
 
 const app = express()
 
+app.use(express.static('dist'));
+
 app.use(express.json());
 
 // const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
