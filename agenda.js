@@ -1,14 +1,14 @@
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
-
+const path = require('path')
 
 // const fs = require('fs')
-// const path = require('path')
+
 
 const app = express()
 
-app.use(express.static('dist'))
+app.use(express.static(path.join(__dirname, 'dist')));
 
 app.use(express.json());
 
@@ -26,7 +26,7 @@ app.use(cors())
 let persons = [
     { 
         id: 1,
-        content: "Arto Hellas", 
+        name: "Arto Hellas", 
         number: "040-123456"
     },
     { 
