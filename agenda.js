@@ -38,8 +38,7 @@ const requestLogger = (request, response, next) => {
 
 app.use(requestLogger)
 
-let persons = [
-]
+let people = []
 
 app.get('/api/people', (request, response) => {
   Person.find({}).then(people => {
@@ -50,13 +49,13 @@ app.get('/api/people', (request, response) => {
 
 app.get('/info', (request, response) => {
   const currentDate = new Date();
-    response.send(`<p>Phonebook has info for ${persons.length} people</p> <p>${currentDate}</p>`)
+    response.send(`<p>Phonebook has info for ${people.length} people</p> <p>${currentDate}</p>`)
   })
 
   app.get('/api/people/:id', (request, response) => {
     const id = Number(request.params.id)
     console.log(id)
-    const person = persons.find(person => {
+    const person = people.find(person => {
         console.log(person.id, typeof person.id, id, typeof id, person.id === id)
         return person.id === id
       })
@@ -68,23 +67,22 @@ app.get('/info', (request, response) => {
       }
   })
 
-  app.delete('/api/persons/:id', (request, response) => {
+  app.delete('/api/people/:id', (request, response) => {
     const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
-  
+    people = people.filter(person => person.id !== id)
+
     response.status(204).end()
   })
   
-  const generateId = () => {
-    let newId;
-    do {
-        newId = Math.floor(Math.random() * 999);
-    } while (persons.some(person => person.id === newId));
-    return newId;
-}
+//   const generateId = () => {
+//     let newId;
+//     do {
+//         newId = Math.floor(Math.random() * 999);
+//     } while (persons.some(person => person.id === newId));
+//     return newId;
+// }
   
-  app.post('/api/persons', (request, response) => {
-    console.log(request.body)
+  app.post('/api/people', (request, response) => {
     const body = request.body
   
     if (!body.name) {
@@ -93,27 +91,25 @@ app.get('/info', (request, response) => {
       })
     }
 
-    const nameExists = persons.some(person => person.name === body.name);
+    const nameExists = people.some(person => person.name === body.name);
     if (nameExists) {
         return response.status(400).json({ 
             error: 'name must be unique'
         });
     }
   
-    const person = {
+    const person = new Person({
       name: body.name,
       number: body.number,
-      id: generateId(),
-    }
+      // id: generateId(),
+    })
 
-    console.log(person)
-  
-    persons = persons.concat(person)
-  
-    response.json(person)
+    person.save().then(savedPerson => {
+      response.json(savedPerson)
+    })
   })
 
 
-  const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT)
 console.log(`Server running on port ${PORT}`)
