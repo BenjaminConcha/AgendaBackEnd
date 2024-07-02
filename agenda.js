@@ -1,6 +1,11 @@
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const dotenv = require('dotenv');
+
+dotenv.config();
+
+const Person = require('./models/person')
 // const path = require('path')
 
 // const fs = require('fs')
@@ -23,32 +28,25 @@ app.use(cors())
 // // Configura Morgan para usar el flujo de escritura
 // app.use(morgan('tiny', { stream: accessLogStream }));
 
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method)
+  console.log('Path:  ', request.path)
+  console.log('Body:  ', request.body)
+  console.log('---')
+  next()
+}
+
+app.use(requestLogger)
+
 let persons = [
-    { 
-        id: 1,
-        name: "Arto Hellas", 
-        number: "040-123456"
-    },
-    { 
-      id: 2,
-      name: "Ada Lovelace", 
-      number: "39-44-5323523"
-    },
-    { 
-      id: 3,
-      name: "Dan Abramov", 
-      number: "12-43-234345"
-    },
-    { 
-      id: 4,
-      name: "Mary Poppendieck", 
-      number: "39-23-6423122"
-    }
 ]
 
-app.get('/api/persons', (request, response) => {
-    response.json(persons)
+app.get('/api/people', (request, response) => {
+  Person.find({}).then(people => {
+    response.json(people)
   })
+})
+
 
 app.get('/info', (request, response) => {
   const currentDate = new Date();
