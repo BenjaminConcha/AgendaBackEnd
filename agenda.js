@@ -53,7 +53,7 @@ app.get('/info', (request, response) => {
     response.send(`<p>Phonebook has info for ${persons.length} people</p> <p>${currentDate}</p>`)
   })
 
-  app.get('/api/persons/:id', (request, response) => {
+  app.get('/api/people/:id', (request, response) => {
     const id = Number(request.params.id)
     console.log(id)
     const person = persons.find(person => {
