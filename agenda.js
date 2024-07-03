@@ -2,6 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const mongoose = require("mongoose");
 
 dotenv.config();
 
@@ -85,7 +86,7 @@ app.delete("/api/people/:id", (request, response) => {
     return response.status(400).send({ error: "Invalid ID format" });
   }
 
-  Person.findByIdAndRemove(id)
+  Person.findByIdAndDelete(id)
     .then((result) => {
       if (result) {
         response.status(204).end();
@@ -138,13 +139,16 @@ app.post("/api/people", (request, response, next) => {
 });
 
 
-app.put("/api/people/:name", (request, response, next) => {
-  const name = request.params.name;
-  const body = request.body;
+app.put("/api/people", (request, response, next) => {
+  const { name, number } = request.body;
+
+  if (!name || !number) {
+    return response.status(400).json({ error: "Name and number are required" });
+  }
 
   Person.findOneAndUpdate(
     { name: name },
-    { number: body.number },
+    { number: number },
     { new: true, runValidators: true, context: 'query' }
   )
     .then((updatedPerson) => {
