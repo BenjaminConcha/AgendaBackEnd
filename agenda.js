@@ -48,20 +48,27 @@ app.get("/api/people", (request, response) => {
 });
 
 app.get("/info", (request, response) => {
-  const currentDate = new Date();
-  response.send(
-    `<p>Phonebook has info for ${people.length} people</p> <p>${currentDate}</p>`
-  );
+  Person.countDocuments({}).then((count) => {
+    const currentDate = new Date();
+    response.send(
+      `<p>Phonebook has info for ${count} people</p> <p>${currentDate}</p>`
+    );
+  });
 });
 
 app.get("/api/people/:id", (request, response, next) => {
-  people
-    .findById(request.params.id)
+  const id = request.params.id;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return response.status(400).send({ error: "Invalid ID format" });
+  }
+
+  people.findById(id)
     .then((person) => {
       if (person) {
         response.json(person);
       } else {
-        response.status(404).end();
+        response.status(404).send({ error: "Person not found" });
       }
     })
     .catch((error) => next(error));
@@ -69,6 +76,10 @@ app.get("/api/people/:id", (request, response, next) => {
 
 app.delete("/api/people/:id", (request, response) => {
   const id = request.params.id;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return response.status(400).send({ error: "Invalid ID format" });
+  }
 
   Person.findByIdAndRemove(id)
     .then((result) => {
@@ -92,7 +103,7 @@ app.delete("/api/people/:id", (request, response) => {
 //     return newId;
 // }
 
-app.post("/api/people", (request, response) => {
+app.post("/api/people", (request, response, next) => {
   const body = request.body;
 
   if (!body.name) {
@@ -101,35 +112,43 @@ app.post("/api/people", (request, response) => {
     });
   }
 
-  const nameExists = people.some((person) => person.name === body.name);
-  if (nameExists) {
-    return response.status(400).json({
-      error: "name must be unique",
+  Person.findOne({ name: body.name }).then((existingPerson) => {
+    if (existingPerson) {
+      return response.status(400).json({
+        error: "name must be unique",
+      });
+    }
+
+    const person = new Person({
+      name: body.name,
+      number: body.number,
     });
-  }
 
-  const person = new Person({
-    name: body.name,
-    number: body.number,
-    // id: generateId(),
-  });
-
-  person.save().then((savedPerson) => {
-    response.json(savedPerson);
+    person
+      .save()
+      .then((savedPerson) => {
+        response.json(savedPerson);
+      })
+      .catch((error) => next(error));
   });
 });
 
-app.put("/api/people/:id", (request, response, next) => {
+
+app.put("/api/people/:name", (request, response, next) => {
+  const name = request.params.name;
   const body = request.body;
 
-  const note = {
-    name: body.name,
-    number: body.number,
-  };
-
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
-    .then((updatePerson) => {
-      response.json(updatePerson);
+  Person.findOneAndUpdate(
+    { name: name },
+    { number: body.number },
+    { new: true, runValidators: true, context: 'query' }
+  )
+    .then((updatedPerson) => {
+      if (updatedPerson) {
+        response.json(updatedPerson);
+      } else {
+        response.status(404).send({ error: "Person not found" });
+      }
     })
     .catch((error) => next(error));
 });
