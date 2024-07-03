@@ -58,12 +58,13 @@ app.get("/info", (request, response) => {
 
 app.get("/api/people/:id", (request, response, next) => {
   const id = request.params.id;
+  console.log('id', id)
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return response.status(400).send({ error: "Invalid ID format" });
   }
 
-  people.findById(id)
+  Person.findById(id)
     .then((person) => {
       if (person) {
         response.json(person);
@@ -71,7 +72,10 @@ app.get("/api/people/:id", (request, response, next) => {
         response.status(404).send({ error: "Person not found" });
       }
     })
-    .catch((error) => next(error));
+    .catch((error) => {
+      console.error("Error fetching person:", error);
+      next(error);
+    });
 });
 
 app.delete("/api/people/:id", (request, response) => {
